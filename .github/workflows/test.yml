@@ -11,8 +11,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.8, 3.9]
-        poetry-version: [1.1.4]
+        python-version: [3.9]
+        poetry-version: [1.1.8]
 
     runs-on: ubuntu-latest
 
@@ -25,18 +25,16 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install poetry ${{ matrix.poetry-version }}
-      run: |
-        python -m ensurepip
-        python -m pip install --upgrade pip
-        python -m pip install poetry==${{ matrix.poetry-version }}
+      uses: snok/install-poetry@v1
 
     - name: View poetry --help
       run: poetry --help
 
     - name: Install dependencies
       shell: bash
-      run: python -m poetry install
+      run: | 
+          poetry install
 
     - name: Test with pytest
       run: |
-        python -m poetry run python -m pytest -v tests
+        poetry run python -m pytest -v
