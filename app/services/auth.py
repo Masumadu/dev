@@ -37,9 +37,9 @@ class AuthService:
             'exp': datetime.utcnow() + timedelta(days=1),
             'grant_type': 'access_token'
         }
-        print("this is my secret key within github" , os.getenv("SECRET_KEY"))
+        print("this is my secret key within github" , os.getenv("SECRET_KEY", "thisisthesecretkey"))
         access_token = jwt.encode(payload, os.getenv("SECRET_KEY", "thisisthesecretkey"), algorithm="HS256")
-        print("this is my secret key within github", os.getenv("SECRET_KEY"))
+        print("this is my secret key within github", os.getenv("SECRET_KEY", "thisisthesecretkey"))
         payload["grant_type"] = "refresh_token"
         payload["exp"] = datetime.utcnow() + timedelta(days=1)
         refresh_token = jwt.encode(payload, os.getenv("SECRET_KEY", "thisisthesecretkey"), algorithm="HS256")
