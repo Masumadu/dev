@@ -35,7 +35,6 @@ jobs:
       
     - name: Activate Virtual env
       run: | 
-          poetry env use python3
           poetry shell
 
     - name: Install dependencies
