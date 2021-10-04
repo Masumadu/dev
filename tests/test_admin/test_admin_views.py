@@ -59,6 +59,7 @@ class TestAdminViews(BaseTestCase):
     @pytest.mark.active
     def test_view_admins(self):
         sign_in = self.test_signin_admin()
+        print("this is signin ", sign_in.json)
         no_token_response = self.client.get(url_for("admin.view_admins"))
         self.assert401(no_token_response)
         self.assertIsInstance(no_token_response.json, dict)

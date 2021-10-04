@@ -16,7 +16,7 @@ def token_required(role: list, refresh=False):
             if not token:
                 return jsonify({'message': 'Token is missing !!'}), 401
             try:
-                data = jwt.decode(token, os.getenv("SECRET_KEY"),
+                data = jwt.decode(token, os.getenv("SECRET_KEY", "thisisthesecretkey"),
                                   algorithms=["HS256"])
             except InvalidTokenError as invalid_token:
                 return jsonify({
