@@ -25,17 +25,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install poetry ${{ matrix.poetry-version }}
-      run: |
-        python -m ensurepip
-        python -m pip install --upgrade pip
-        python -m pip install poetry==${{ matrix.poetry-version }}
+      uses: snok/install-poetry@v1
 
     - name: View poetry --help
       run: poetry --help
-      
-    - name: Activate Virtual env
-      run: | 
-          poetry shell
 
     - name: Install dependencies
       shell: bash
@@ -44,4 +37,4 @@ jobs:
 
     - name: Test with pytest
       run: |
-        poetry run pytest -v
+        poetry run python -m pytest
