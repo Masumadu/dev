@@ -32,11 +32,15 @@ jobs:
 
     - name: View poetry --help
       run: poetry --help
+      
+    - name: Activate Virtual env
+      run: | 
+          poetry env use python3
+          poetry shell
 
     - name: Install dependencies
       shell: bash
       run: | 
-          poetry shell
           poetry install
 
     - name: Test with pytest
