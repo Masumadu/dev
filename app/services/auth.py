@@ -7,7 +7,7 @@ import jwt
 from flask import jsonify
 
 # local imports
-from app import db
+from app import db, create_app
 
 
 class AuthService:
@@ -37,8 +37,8 @@ class AuthService:
             'exp': datetime.utcnow() + timedelta(days=1),
             'grant_type': 'access_token'
         }
-        access_token = jwt.encode(payload, os.getenv("SECRET_KEY", "thisisthesecretkey"), algorithm="HS256")
+        access_token = jwt.encode(payload, create_app().config["SECRET_KEY"], algorithm="HS256")
         payload["grant_type"] = "refresh_token"
         payload["exp"] = datetime.utcnow() + timedelta(days=1)
-        refresh_token = jwt.encode(payload, os.getenv("SECRET_KEY", "thisisthesecretkey"), algorithm="HS256")
+        refresh_token = jwt.encode(payload, create_app().config["SECRET_KEY"], algorithm="HS256")
         return [access_token, refresh_token]
