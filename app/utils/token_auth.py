@@ -23,19 +23,6 @@ def token_required(role: list, refresh=False):
             decoded_token = auth_service.decode_token(token)
             if isinstance(decoded_token, dict):
                 token_payload = decoded_token
-            try:
-                data = jwt.decode(token, Config.SECRET_KEY,
-                                  algorithms=["HS256"])
-            except InvalidTokenError as invalid_token:
-                return jsonify({
-                    "error": invalid_token.args
-                }), 401
-            if refresh:
-                if data["grant_type"] != "refresh_token":
-                    return make_response(jsonify({
-                        "status": "error",
-                        "error": "refresh token required"
-                    }), 401)
             else:
                 return jsonify({
                         "error": decoded_token
