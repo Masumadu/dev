@@ -12,14 +12,14 @@ from jwt import InvalidTokenError, PyJWTError
 class TestAuthService(BaseTestCase):
     auth = AuthService()
 
-    @pytest.mark.active
+    @pytest.mark.admin
     def test_create_token(self):
         token = self.auth.create_token(self.admin_model.id, self.admin_model.role)
         self.assertIsInstance(token, list)
         self.assertEqual(len(token), 2)
         return token
 
-    @pytest.mark.active
+    @pytest.mark.admin
     def test_decode_token(self):
         token = self.auth.create_token(self.admin_model.id, self.admin_model.role)
         access_token, refresh_token = token
@@ -33,7 +33,7 @@ class TestAuthService(BaseTestCase):
         self.assertEqual("refresh_token", refresh_payload["grant_type"])
         return access_payload, refresh_payload
 
-    @pytest.mark.active
+    @pytest.mark.admin
     def test_check_token_type(self):
         access_payload, refresh_payload = self.test_decode_token()
         self.assertIsNone(self.auth.check_token_type(access_payload))
@@ -49,7 +49,7 @@ class TestAuthService(BaseTestCase):
             self.shared_responses.access_token_required()
         )
 
-    @pytest.mark.active
+    @pytest.mark.admin
     def test_check_access_role(self):
         access_payload, refresh_payload = self.test_decode_token()
         self.assertIsNone(self.auth.check_access_role(access_payload, [self.admin_model.role]))
