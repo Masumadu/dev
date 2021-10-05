@@ -1,6 +1,7 @@
 import os
 from tests import BaseTestCase
 import pytest
+import jwt
 
 # basedir = os.path.abspath(os.path.dirname(__file__))
 # the_basedir = os.path.abspath(os.path.join(__file__, os.pardir))

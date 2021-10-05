@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 
 # third party imports
 import jwt
-from flask import jsonify
+from flask import jsonify, make_response
+from jwt import InvalidTokenError
 
 # local imports
 from app import db
@@ -43,3 +44,32 @@ class AuthService:
         payload["exp"] = datetime.utcnow() + timedelta(days=1)
         refresh_token = jwt.encode(payload, Config.SECRET_KEY, algorithm="HS256")
         return [access_token, refresh_token]
+
+    def decode_token(self, token):
+        try:
+            decode_token = jwt.decode(token, Config.SECRET_KEY,
+                              algorithms=["HS256"])
+        except InvalidTokenError as invalid_token:
+            return invalid_token.args
+        return decode_token
+
+    def check_token_type(self, payload, refresh_token=False):
+        if refresh_token:
+            if payload["grant_type"] != "refresh_token":
+                return make_response(jsonify({
+                    "status": "error",
+                    "error": "refresh token required"
+                }), 401)
+        else:
+            if payload["grant_type"] == "refresh_token":
+                return make_response(jsonify({
+                    "status": "error",
+                    "error": "access token required"
+                }), 401)
+
+    def check_access_role(self, payload, access_role):
+        if payload["role"] not in access_role:
+            return make_response(jsonify({
+                "status": "error",
+                "error": "unauthorized user"
+            }), 401)
