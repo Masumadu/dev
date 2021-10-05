@@ -3,7 +3,7 @@ from flask import request, jsonify, make_response
 import jwt
 import os
 from jwt import InvalidTokenError
-from app import create_app
+from config import Config
 
 
 def token_required(role: list, refresh=False):
@@ -17,7 +17,7 @@ def token_required(role: list, refresh=False):
             if not token:
                 return jsonify({'message': 'Token is missing !!'}), 401
             try:
-                data = jwt.decode(token, create_app().config["SECRET_KEY"],
+                data = jwt.decode(token, Config.SECRET_KEY,
                                   algorithms=["HS256"])
             except InvalidTokenError as invalid_token:
                 return jsonify({
