@@ -20,7 +20,7 @@ UPDATE_ADMIN_INFO = {
 
 
 class TestAdminViews(BaseTestCase):
-    @pytest.mark.active
+    @pytest.mark.admin
     def test_signin_admin(self):
         invalid_admin_info = {
             "username": "test_admin_usname",
@@ -56,7 +56,7 @@ class TestAdminViews(BaseTestCase):
         self.assertEqual(response.json["email"], NEW_ADMIN["email"])
         self.assertEqual(response.json["username"], NEW_ADMIN["username"])
 
-    @pytest.mark.active
+    @pytest.mark.admin
     def test_view_admins(self):
         sign_in = self.test_signin_admin()
         print("this is signin ", sign_in.json)
