@@ -1,11 +1,12 @@
 # local imports
 from app.core.repository import SQLBaseRepository
 from app.models import BillModel
-from app.schema import BillReadSchema
+from app.schema import BillSchema
 from app.services import RedisService
 from app.utils import create_time_object, create_date_object
+from app.models import BillModel
 
-bill_schema = BillReadSchema()
+bill_schema = BillSchema()
 
 
 class BillRepository(SQLBaseRepository):
@@ -29,6 +30,7 @@ class BillRepository(SQLBaseRepository):
         return super().index()
 
     def create(self, obj_in):
+        print("this is the obj in ", obj_in)
         obj_in["date"] = create_date_object(obj_in["date"])
         obj_in["start_time"] = create_time_object(obj_in["start_time"])
         obj_in["end_time"] = create_time_object(obj_in["end_time"])

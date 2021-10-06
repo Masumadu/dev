@@ -17,9 +17,11 @@ class BillController:
 
     def create(self, user_id, data):
         data["lawyer_id"] = user_id
+        print("this is the bill ", data)
         # get all bills within the system
         query_bill = self.index()
         bills = handle_result(query_bill, schema=BillReadSchema, many=True)
+        print("this is the bills ", bills)
         for bill in bills.json:
             bill_id = bill.pop("id")
             # compare the bills within the system to the incoming data

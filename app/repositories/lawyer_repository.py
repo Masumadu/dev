@@ -2,9 +2,9 @@
 from app.core.repository import SQLBaseRepository
 from app.models import LawyerModel
 from app.services import RedisService
-from app.schema import LawyerReadSchema
+from app.schema import LawyerSchema
 
-lawyer_schema = LawyerReadSchema()
+lawyer_schema = LawyerSchema()
 
 
 class LawyerRepository(SQLBaseRepository):
@@ -32,7 +32,6 @@ class LawyerRepository(SQLBaseRepository):
     def find_by_id(self, obj_id: int):
         cache_data = self.redis_service.get(f"lawyer__{obj_id}")
         if cache_data:
-            print("cache")
             return cache_data
         return super().find_by_id(obj_id)
 

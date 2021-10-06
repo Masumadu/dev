@@ -11,6 +11,8 @@ class BillSchema(Schema):
     end_time = fields.Time(required=True)
 
     class Meta:
+        fields = ["id", "lawyer_id", "billable_rate", "company", "date",
+                  "start_time", "end_time"]
         ordered = True
 
 

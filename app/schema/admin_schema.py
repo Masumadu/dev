@@ -9,6 +9,7 @@ class AdminSchema(Schema):
     password = fields.String(required=True)
 
     class Meta:
+        fields = ["id", "name", "username", "email", "password"]
         ordered = True
 
 
@@ -20,7 +21,7 @@ class AdminCreateSchema(AdminSchema):
 
 class AdminReadSchema(AdminSchema):
     class Meta:
-        fields = ["id", "name", "username", "email", "password"]
+        fields = ["id", "name", "username", "email"]
         load_only = ["password"]
 
 

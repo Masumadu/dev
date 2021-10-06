@@ -10,6 +10,7 @@ class LawyerSchema(Schema):
     password = fields.String(required=True)
 
     class Meta:
+        fields = ["id", "admin_id", "name", "username", "email", "password"]
         ordered = True
 
 
