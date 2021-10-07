@@ -16,7 +16,6 @@ NEW_BILL = {
     "end_time": "08:30"
 }
 UPDATE_BILL_INFO = {
-    "lawyer_id": 1,
     "billable_rate": 5000,
     "company": "update_company",
     "date": "2020-12-12",

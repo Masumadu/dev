@@ -1,10 +1,8 @@
 import unittest
-from tests import BaseTestCase, SharedResponse
+from tests import BaseTestCase
 from app.models import BillModel
-from app import db
 import pytest
 from flask import url_for
-from datetime import date, time
 
 NEW_BILL = {
     "billable_rate": 300,
@@ -59,9 +57,9 @@ class TestBillViews(BaseTestCase):
                          self.shared_responses.missing_token_authentication())
         wrong_access_token_response = self.client.post(
             url_for("bill.create_bill"),
-            headers={"Authorization": "Bearer " +
-                                      admin_sign_in.json["access_token"]
-                     }, json=new_bill
+            headers={
+                "Authorization": "Bearer " + admin_sign_in.json["access_token"]
+            }, json=new_bill
         )
         self.assert401(wrong_access_token_response)
         self.assertIsInstance(wrong_access_token_response.json, dict)
@@ -164,9 +162,11 @@ class TestBillViews(BaseTestCase):
     def test_delete_bill(self):
         sign_in = self.test_signin_lawyer()
         new_bill = NEW_BILL.copy()
-        self.client.post(url_for("bill.create_bill"),
-            headers={"Authorization": "Bearer " + sign_in.json["access_token"]}
-            , json=new_bill
+        self.client.post(
+            url_for("bill.create_bill"),
+            headers={
+                "Authorization": "Bearer " + sign_in.json["access_token"]
+            }, json=new_bill
         )
         self.assertEqual(BillModel.query.count(), 2)
         delete_admin_response = self.client.delete(

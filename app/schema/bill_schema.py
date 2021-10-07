@@ -2,7 +2,7 @@ from marshmallow import Schema, fields
 
 
 class BillSchema(Schema):
-    id = fields.Integer(required=True)
+    id = fields.Integer()
     lawyer_id = fields.Integer(required=True)
     billable_rate = fields.Integer(required=True)
     company = fields.String(required=True)
@@ -20,7 +20,8 @@ class BillCreateSchema(BillSchema):
     class Meta:
         fields = ["id", "lawyer_id", "billable_rate", "company", "date", "start_time",
                   "end_time"]
-        exclude = ["id", "lawyer_id"]
+        exclude = ["lawyer_id"]
+        unknown = ["INCLUDE"]
 
 
 class BillUpdateSchema(BillSchema):

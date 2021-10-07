@@ -4,6 +4,7 @@ from app.models import AdminModel
 from app.services import RedisService
 from app.schema import AdminSchema
 from app.core.exceptions import HTTPException
+
 admin_schema = AdminSchema()
 
 
@@ -16,11 +17,14 @@ class AdminRepository(SQLBaseRepository):
 
     def create(self, obj_in):
         server_data = super().create(obj_in)
-        cache_admin = admin_schema.dumps(server_data)
-        self.redis_service.set(f"admin__{server_data.id}", cache_admin)
-        cache_all_admins = admin_schema.dumps(super().index(), many=True)
-        self.redis_service.set("all_admins", cache_all_admins)
-        return server_data
+        try:
+            cache_admin = admin_schema.dumps(server_data)
+            self.redis_service.set(f"admin__{server_data.id}", cache_admin)
+            cache_all_admins = admin_schema.dumps(super().index(), many=True)
+            self.redis_service.set("all_admins", cache_all_admins)
+            return server_data
+        except HTTPException:
+            return server_data
 
     def index(self):
         try:
@@ -47,10 +51,9 @@ class AdminRepository(SQLBaseRepository):
                 self.redis_service.delete(f"admin__{obj_id}")
             server_result = super().update_by_id(obj_id, obj_in)
             self.redis_service.set(f"admin__{obj_id}",
-                                       admin_schema.dumps(server_result))
-            self.redis_service.set("all_admins",
-                                       admin_schema.dumps(super().index(),
-                                                          many=True))
+                                   admin_schema.dumps(server_result))
+            self.redis_service.set("all_admins",admin_schema.dumps(
+                                    super().index(), many=True))
             return server_result
         except HTTPException:
             return super().update_by_id(obj_id, obj_in)
@@ -61,8 +64,8 @@ class AdminRepository(SQLBaseRepository):
             if cache_data:
                 self.redis_service.delete(f"admin__{obj_id}")
             delete = super().delete(obj_id)
-            self.redis_service.set("all_admins",
-                                   admin_schema.dumps(super().index(), many=True))
+            self.redis_service.set("all_admins", admin_schema.dumps(
+                                    super().index(), many=True))
             return delete
         except HTTPException:
             return super().delete(obj_id)

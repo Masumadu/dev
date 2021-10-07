@@ -2,24 +2,25 @@ from app.repositories import BillRepository
 from tests import BaseTestCase
 import pytest
 from app.models import BillModel
+from app.schema import BillReadSchema
 import unittest
 
+bill_read_schema = BillReadSchema()
 
 NEW_BILL = {
     "lawyer_id": 1,
     "billable_rate": 300,
     "company": "new_company",
     "date": "2020-09-09",
-    "start_time": "08:30",
-    "end_time": "08:30"
+    "start_time": "08:30:00",
+    "end_time": "08:30:00"
 }
 UPDATE_BILL_INFO = {
-    "lawyer_id": 1,
     "billable_rate": 5000,
     "company": "update_company",
     "date": "2020-12-12",
-    "start_time": "06:30",
-    "end_time": "20:30"
+    "start_time": "06:30:00",
+    "end_time": "20:30:00"
 }
 
 
@@ -42,15 +43,12 @@ class TestBillRepository(BaseTestCase):
     def test_create(self):
         new_bill = NEW_BILL.copy()
         create_new_bill = BillRepository(self.redis).create(new_bill)
+        new_bill_info = bill_read_schema.dump(create_new_bill)
         self.assertEqual(BillModel.query.count(), 2)
         self.assertIsInstance(create_new_bill, BillModel)
         self.assertEqual(create_new_bill.id, 2)
-        self.assertEqual(create_new_bill.billable_rate,
-                         new_bill["billable_rate"])
-        self.assertEqual(create_new_bill.company, new_bill["company"])
-        self.assertEqual(create_new_bill.date, new_bill["date"])
-        self.assertEqual(create_new_bill.start_time, new_bill["start_time"])
-        self.assertEqual(create_new_bill.end_time, new_bill["end_time"])
+        for key in new_bill.keys():
+            self.assertEqual(new_bill[key], new_bill_info[key])
 
     @pytest.mark.bill
     def test_find_by_id(self):
@@ -67,17 +65,14 @@ class TestBillRepository(BaseTestCase):
 
     @pytest.mark.bill
     def test_update_by_id(self):
-        update_bill = BillRepository(self.redis).update_by_id(1, UPDATE_BILL_INFO)
+        bill_update_info = UPDATE_BILL_INFO.copy()
+        update_bill = BillRepository(self.redis).update_by_id(1, bill_update_info)
+        updated_info = bill_read_schema.dump(update_bill)
         self.assertEqual(BillModel.query.count(), 1)
         self.assertIsInstance(update_bill, BillModel)
         self.assertEqual(update_bill.id, 1)
-        self.assertEqual(update_bill.billable_rate,
-                         UPDATE_BILL_INFO["billable_rate"])
-        self.assertEqual(update_bill.company, UPDATE_BILL_INFO["company"])
-        self.assertEqual(update_bill.date, UPDATE_BILL_INFO["date"])
-        self.assertEqual(update_bill.start_time,
-                         UPDATE_BILL_INFO["start_time"])
-        self.assertEqual(update_bill.end_time, UPDATE_BILL_INFO["end_time"])
+        for key in bill_update_info.keys():
+            self.assertEqual(updated_info[key], bill_update_info[key])
 
     @pytest.mark.bill
     def test_delete(self):
