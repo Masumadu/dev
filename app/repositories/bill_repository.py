@@ -66,8 +66,8 @@ class BillRepository(SQLBaseRepository):
             if cache_data:
                 self.redis_service.delete(f"bill__{obj_id}")
             delete = super().delete(obj_id)
-            self.redis_service.set("all_bills", bill_schema.dumps(
-                                    super().index(), many=True))
+            self.redis_service.set(
+                "all_bills", bill_schema.dumps(super().index(), many=True))
             return delete
         except HTTPException:
             return super().delete(obj_id)

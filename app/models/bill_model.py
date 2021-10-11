@@ -29,3 +29,6 @@ class BillModel(db.Model):
     date = db.Column('Date', db.Date, nullable=False)
     start_time = db.Column('Start Time', db.Time, nullable=False)
     end_time = db.Column('End Time', db.Time, nullable=False)
+
+    def __repr__(self):
+        return f"<bill: {self.id}>"

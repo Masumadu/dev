@@ -50,10 +50,10 @@ class LawyerRepository(SQLBaseRepository):
             if cache_data:
                 self.redis_service.delete(f"lawyer__{obj_id}")
             server_data = super().update_by_id(obj_id, obj_in)
-            self.redis_service.set(f"lawyer__{obj_id}", lawyer_schema.dumps(
-                                    server_data))
-            self.redis_service.set("all_lawyers", lawyer_schema.dumps(
-                                    super().index(), many=True))
+            self.redis_service.set(
+                f"lawyer__{obj_id}", lawyer_schema.dumps(server_data))
+            self.redis_service.set(
+                "all_lawyers", lawyer_schema.dumps(super().index(), many=True))
             return server_data
         except HTTPException:
             return super().update_by_id(obj_id, obj_in)
@@ -64,8 +64,8 @@ class LawyerRepository(SQLBaseRepository):
             if cache_data:
                 self.redis_service.delete(f"lawyer__{obj_id}")
             delete = super().delete(obj_id)
-            self.redis_service.set("all_lawyers",lawyer_schema.dumps(
-                                    super().index(), many=True))
+            self.redis_service.set(
+                "all_lawyers", lawyer_schema.dumps(super().index(), many=True))
             return delete
         except HTTPException:
             return super().delete(obj_id)

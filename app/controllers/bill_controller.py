@@ -4,7 +4,6 @@ from app.repositories import BillRepository
 from collections import defaultdict
 
 from app.schema import BillReadSchema
-from app.utils import create_time_object, create_date_object
 
 
 class BillController:
@@ -57,6 +56,8 @@ class BillController:
         if data:
             company_bills = defaultdict(list)
             total_bill_cost = 0
+            hours_worked = 0
+            time_worked = 0
             for each_bill in data:
                 start_time = list(map(int, str(each_bill.start_time).split(':')))
                 end_time = list(map(int, str(each_bill.end_time).split(':')))
@@ -73,6 +74,7 @@ class BillController:
                             minutes_worked = end_time[index] - start_time[index]
                         time_worked = round(hours_worked + (minutes_worked / 60),
                                             2)
+                        print(hours_worked)
                 total_rate = time_worked * each_bill.billable_rate
                 total_bill_cost += total_rate
                 company_bills[each_bill.company].append({

@@ -1,5 +1,5 @@
 import unittest
-from tests import BaseTestCase, SharedResponse
+from tests import BaseTestCase
 from app.models import LawyerModel
 from app import db
 import pytest
@@ -40,7 +40,7 @@ class TestLawyerViews(BaseTestCase):
         }
         invalid_lawyer_info_response = self.client.post(
             url_for("lawyer.signin_lawyer"), json=invalid_lawyer_info)
-        self.assert200(invalid_lawyer_info_response)
+        self.assert400(invalid_lawyer_info_response)
         self.assertIsInstance(invalid_lawyer_info_response.json, dict)
         self.assertEqual(self.shared_responses.signin_invalid_credentials(),
                          invalid_lawyer_info_response.json)
@@ -60,29 +60,21 @@ class TestLawyerViews(BaseTestCase):
 
     @pytest.mark.lawyer
     def test_create_lawyer(self):
-        admin_sign_in = self.test_signin_admin()
-        lawyer_sign_in = self.test_signin_lawyer()
         no_token_response = self.client.get(url_for("lawyer.create_lawyer"))
         self.assert401(no_token_response)
         self.assertIsInstance(no_token_response.json, dict)
         self.assertEqual(no_token_response.json,
                          self.shared_responses.missing_token_authentication())
+        self.test_signin_lawyer()
         wrong_access_token_response = self.client.post(
-            url_for("lawyer.create_lawyer"),
-            headers={"Authorization": "Bearer " +
-                                      lawyer_sign_in.json["access_token"]
-                     }, json=NEW_LAWYER
-        )
+            url_for("lawyer.create_lawyer"), json=NEW_LAWYER)
         self.assert401(wrong_access_token_response)
         self.assertIsInstance(wrong_access_token_response.json, dict)
         self.assertEqual(wrong_access_token_response.json,
                          self.shared_responses.unauthorize_operation())
+        self.test_signin_admin()
         right_access_token_response = self.client.post(
-            url_for("lawyer.create_lawyer"),
-            headers={"Authorization": "Bearer "
-                                      + admin_sign_in.json["access_token"]
-                     }, json=NEW_LAWYER
-        )
+            url_for("lawyer.create_lawyer"), json=NEW_LAWYER)
         self.assertEqual(right_access_token_response.status_code, 201)
         self.assertEqual(LawyerModel.query.count(), 2)
         self.assertIsInstance(right_access_token_response.json, dict)
@@ -92,11 +84,8 @@ class TestLawyerViews(BaseTestCase):
 
     @pytest.mark.lawyer
     def test_view_lawyers(self):
-        sign_in = self.test_signin_admin()
-        response = self.client.get(
-            url_for("lawyer.view_lawyers"),
-            headers={
-                "Authorization": "Bearer " + sign_in.json["access_token"]})
+        self.test_signin_admin()
+        response = self.client.get(url_for("lawyer.view_lawyers"))
         self.assertEqual(LawyerModel.query.count(), 1)
         self.assert200(response)
         self.assertIsInstance(response.json, list)
@@ -107,19 +96,15 @@ class TestLawyerViews(BaseTestCase):
 
     @pytest.mark.lawyer
     def test_view_lawyer(self):
-        sign_in = self.test_signin_admin()
+        self.test_signin_admin()
         resource_unavailable_response = self.client.get(
-            url_for("lawyer.view_lawyer", lawyer_id=2),
-            headers={"Authorization": "Bearer " + sign_in.json["access_token"]}
-        )
+            url_for("lawyer.view_lawyer", lawyer_id=2))
         self.assert404(resource_unavailable_response)
         self.assertIsInstance(resource_unavailable_response.json, dict)
         self.assertEqual(resource_unavailable_response.json,
                          self.shared_responses.resource_unavailable())
         resource_available_response = self.client.get(
-            url_for("lawyer.view_lawyer", lawyer_id=1),
-            headers={"Authorization": "Bearer " + sign_in.json["access_token"]}
-        )
+            url_for("lawyer.view_lawyer", lawyer_id=1))
         self.assertEqual(LawyerModel.query.count(), 1)
         self.assert200(resource_available_response)
         self.assertIsInstance(resource_available_response.json, dict)
@@ -129,12 +114,10 @@ class TestLawyerViews(BaseTestCase):
 
     @pytest.mark.lawyer
     def test_update_lawyer(self):
-        sign_in = self.test_signin_admin()
+        self.test_signin_admin()
         update_lawyer_response = self.client.put(
             url_for("lawyer.update_lawyer", lawyer_id=1),
-            headers={"Authorization": "Bearer " + sign_in.json["access_token"]}
-            , json=UPDATE_LAWYER_INFO
-        )
+            json=UPDATE_LAWYER_INFO)
         self.assertEqual(LawyerModel.query.count(), 1)
         self.assert200(update_lawyer_response)
         self.assertIsInstance(update_lawyer_response.json, dict)
@@ -144,7 +127,7 @@ class TestLawyerViews(BaseTestCase):
 
     @pytest.mark.lawyer
     def test_delete_lawyer(self):
-        sign_in = self.test_signin_admin()
+        self.test_signin_admin()
         new_lawyer_info = NEW_LAWYER.copy()
         new_lawyer_info["admin_id"] = 1
         new_lawyer = LawyerModel(**new_lawyer_info)
@@ -152,30 +135,45 @@ class TestLawyerViews(BaseTestCase):
         db.session.commit()
         self.assertEqual(LawyerModel.query.count(), 2)
         delete_lawyer_response = self.client.delete(
-            url_for("lawyer.delete_lawyer", lawyer_id=2),
-            headers={"Authorization": "Bearer " + sign_in.json["access_token"]}
-        )
+            url_for("lawyer.delete_lawyer", lawyer_id=2))
         self.assertEqual(delete_lawyer_response.status_code, 204)
         self.assertEqual(LawyerModel.query.count(), 1)
 
     @pytest.mark.lawyer
     def test_refresh_token(self):
         sign_in = self.test_signin_lawyer()
-        access_token_response = self.client.get(
-            url_for("lawyer.refresh_access_token"),
-            headers={"Authorization": "Bearer " + sign_in.json["access_token"]}
-        )
-        self.assert401(access_token_response)
-        self.assertEqual(access_token_response.json,
-                         self.shared_responses.refresh_token_required())
+        self.client.set_cookie("localhost", "refresh_token", "")
+        no_refresh_token_response = self.client.get(
+            url_for("lawyer.refresh_access_token"))
+        self.assert401(no_refresh_token_response)
+        self.assertIsInstance(no_refresh_token_response.json, dict)
+        self.assertEqual(self.shared_responses.app_exception().keys(),
+                         no_refresh_token_response.json.keys())
+        self.client.set_cookie("localhost", "refresh_token",
+                               sign_in.json["refresh_token"])
         refresh_token_response = self.client.get(
-            url_for("lawyer.refresh_access_token"),
-            headers={
-                "Authorization": "Bearer " + sign_in.json["refresh_token"]}
-        )
+            url_for("lawyer.refresh_access_token"))
         self.assert200(refresh_token_response)
-        self.assertEqual(refresh_token_response.json.keys(),
-                         self.shared_responses.signin_valid_credentials().keys())
+        self.assertIsInstance(refresh_token_response.json, dict)
+        self.assertEqual(
+            self.shared_responses.signin_valid_credentials().keys(),
+            refresh_token_response.json.keys())
+        # sign_in = self.test_signin_lawyer()
+        # access_token_response = self.client.get(
+        #     url_for("lawyer.refresh_access_token"),
+        #     headers={"Authorization": "Bearer " + sign_in.json["access_token"]}
+        # )
+        # self.assert401(access_token_response)
+        # self.assertEqual(access_token_response.json,
+        #                  self.shared_responses.refresh_token_required())
+        # refresh_token_response = self.client.get(
+        #     url_for("lawyer.refresh_access_token"),
+        #     headers={
+        #         "Authorization": "Bearer " + sign_in.json["refresh_token"]}
+        # )
+        # self.assert200(refresh_token_response)
+        # self.assertEqual(refresh_token_response.json.keys(),
+        #                  self.shared_responses.signin_valid_credentials().keys())
 
 
 if __name__ == "__main__":

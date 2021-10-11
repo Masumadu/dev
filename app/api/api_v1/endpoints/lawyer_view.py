@@ -12,7 +12,7 @@ from app.services import RedisService
 
 # third party imports
 import pinject
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 from app.utils.token_auth import token_required
 
 lawyer = Blueprint("lawyer", __name__)
@@ -72,7 +72,4 @@ def delete_lawyer(current_user, lawyer_id):
 @token_required(role=["lawyer"], refresh=True)
 def refresh_access_token(data):
     token = lawyer_controller.refresh_token(data)
-    return jsonify({
-        "access_token": token[0],
-        "refresh_token": token[1]
-    })
+    return token

@@ -17,7 +17,7 @@ from app.services import AuthService
 
 # third party imports
 import pinject
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 
 admin = Blueprint("admin", __name__)
 
@@ -29,7 +29,6 @@ admin_controller = obj_graph_admin.provide(AdminController)
 auth = AuthService()
 
 
-# create new admin
 @admin.route("/", methods=["POST"])
 @validator(schema=AdminCreateSchema)
 def create_admin():
@@ -76,7 +75,4 @@ def delete_admin(current_user, admin_id):
 @token_required(role=["admin"], refresh=True)
 def refresh_access_token(data):
     token = admin_controller.refresh_token(data)
-    return jsonify({
-        "access_token": token[0],
-        "refresh_token": token[1]
-    })
+    return token

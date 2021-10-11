@@ -4,8 +4,8 @@ from datetime import date, time
 class SharedResponse:
     def signin_invalid_credentials(self):
         return {
-            "error": "user verification failure. invalid credentials",
-            "status": "error"
+            "app_exception": "ValidationException",
+            "errorMessage": "verification failure"
         }
 
     def signin_valid_credentials(self):
@@ -16,7 +16,8 @@ class SharedResponse:
 
     def missing_token_authentication(self):
         return {
-            "message": "Token is missing !!"
+            "app_exception": "Unauthorized",
+            "errorMessage": "Token is missing"
         }
 
     def resource_unavailable(self):
@@ -27,8 +28,8 @@ class SharedResponse:
 
     def unauthorize_operation(self):
         return {
-            "error": "unauthorized user",
-            "status": "error"
+            "app_exception": "Unauthorized",
+            "errorMessage": "operation unauthorized"
         }
 
     def refresh_token_required(self):
@@ -41,4 +42,10 @@ class SharedResponse:
         return {
             "error": "access token required",
             "status": "error"
+        }
+
+    def app_exception(self):
+        return {
+            "app_exception": "",
+            "errorMessage": ""
         }

@@ -1,75 +1,80 @@
 # in-built imports
-import os
 from datetime import datetime, timedelta
 
 # third party imports
 import jwt
-from flask import jsonify, make_response
-from jwt import InvalidTokenError
-
+from flask import jsonify, url_for, request
+from jwt import InvalidTokenError, ExpiredSignatureError, DecodeError
+import requests
+from requests.exceptions import RequestException
 # local imports
 from app import db
+from app.core.exceptions import AppException
 from config import Config
 
 
 class AuthService:
     def sign_in(self, auth_info: dict, model: db.Model):
         if not auth_info or not auth_info.get("username") or not auth_info.get("password"):
-            return jsonify({
-                "status": "error",
-                "error": "authentication information required"
-            })
+            raise AppException.Unauthorized(context="signin info required")
         user = model.query.filter_by(
             username=auth_info.get("username")).first()
         if user is not None and user.verify_password(auth_info.get("password")):
             user_token = self.create_token(user.id, role=user.role)
-            return jsonify({
-                "access_token": user_token[0],
-                "refresh_token": user_token[1]
-            })
-        return jsonify({
-            "status": "error",
-            "error": "user verification failure. invalid credentials"
-        })
+            return jsonify(user_token)
+        raise AppException.ValidationException(context="verification failure")
 
     def create_token(self, id: int, role=None):
         payload = {
             'id': id,
             'role': role,
-            'exp': datetime.utcnow() + timedelta(days=1),
-            'grant_type': 'access_token'
+            'exp': datetime.utcnow() + timedelta(seconds=20),
         }
-        access_token = jwt.encode(payload, Config.SECRET_KEY, algorithm="HS256")
-        payload["grant_type"] = "refresh_token"
-        payload["exp"] = datetime.utcnow() + timedelta(days=1)
-        refresh_token = jwt.encode(payload, Config.SECRET_KEY, algorithm="HS256")
-        return [access_token, refresh_token]
+        access_token = jwt.encode(payload, Config.SECRET_KEY,
+                                  algorithm="HS256",
+                                  headers={"access": True})
+        payload["exp"] = datetime.utcnow() + timedelta(minutes=1)
+        refresh_token = jwt.encode(payload, Config.SECRET_KEY,
+                                   algorithm="HS256",
+                                   headers={"refresh": True})
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token
+        }
 
     def decode_token(self, token: str):
         try:
+            get_token_headers = jwt.get_unverified_header(token)
+        except DecodeError as e:
+            raise AppException.OperationError(context=e.args[0])
+        try:
             decode_token = jwt.decode(token, Config.SECRET_KEY,
-                              algorithms=["HS256"])
-        except InvalidTokenError as invalid_token:
-            return invalid_token.args
+                                      algorithms="HS256")
+        except ExpiredSignatureError as e:
+            if get_token_headers.get("refresh"):
+                raise AppException.OperationError(context=e.args[0])
+            return self.refresh_token(refresh=True)
+        except InvalidTokenError as e:
+            raise AppException.OperationError(context=e.args[0])
         return decode_token
 
-    def check_token_type(self, payload: dict, refresh_token=False):
-        if refresh_token:
-            if payload["grant_type"] != "refresh_token":
-                return make_response(jsonify({
-                    "status": "error",
-                    "error": "refresh token required"
-                }), 401)
-        else:
-            if payload["grant_type"] == "refresh_token":
-                return make_response(jsonify({
-                    "status": "error",
-                    "error": "access token required"
-                }), 401)
+    def refresh_token(self, refresh=False):
+        cookies = {"refresh_token": request.cookies.get("refresh_token")}
+        refresh_session = requests.session()
+        try:
+            refresh_response = refresh_session.get(
+                "http://localhost:5000" + url_for(
+                    "admin.refresh_access_token"),
+                cookies=cookies)
+            if refresh_response.status_code == 200:
+                cookies["access_token"] = refresh_response.cookies.get(
+                    "access_token")
+            cookies["access_token"] = request.cookies.get("refresh_token")
+            return refresh_session.get(request.base_url,
+                                       cookies=cookies).json()
+        except RequestException as e:
+            raise AppException.OperationError(context=e.args[0])
 
     def check_access_role(self, payload: dict, access_role: list):
         if payload["role"] not in access_role:
-            return make_response(jsonify({
-                "status": "error",
-                "error": "unauthorized user"
-            }), 401)
+            raise AppException.Unauthorized(context="operation unauthorized")

@@ -52,8 +52,8 @@ class AdminRepository(SQLBaseRepository):
             server_result = super().update_by_id(obj_id, obj_in)
             self.redis_service.set(f"admin__{obj_id}",
                                    admin_schema.dumps(server_result))
-            self.redis_service.set("all_admins",admin_schema.dumps(
-                                    super().index(), many=True))
+            self.redis_service.set(
+                "all_admins", admin_schema.dumps(super().index(), many=True))
             return server_result
         except HTTPException:
             return super().update_by_id(obj_id, obj_in)
@@ -64,8 +64,8 @@ class AdminRepository(SQLBaseRepository):
             if cache_data:
                 self.redis_service.delete(f"admin__{obj_id}")
             delete = super().delete(obj_id)
-            self.redis_service.set("all_admins", admin_schema.dumps(
-                                    super().index(), many=True))
+            self.redis_service.set(
+                "all_admins", admin_schema.dumps(super().index(), many=True))
             return delete
         except HTTPException:
             return super().delete(obj_id)
