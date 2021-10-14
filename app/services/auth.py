@@ -33,6 +33,7 @@ class AuthService:
         access_token = jwt.encode(payload, Config.SECRET_KEY,
                                   algorithm="HS256",
                                   headers={"access": True})
+        print("this is the secret key ", Config.SECRET_KEY)
         payload["exp"] = datetime.utcnow() + timedelta(seconds=45)
         refresh_token = jwt.encode(payload, Config.SECRET_KEY,
                                    algorithm="HS256",

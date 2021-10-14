@@ -22,7 +22,7 @@ UPDATE_ADMIN_INFO = {
 
 
 class TestAdminViews(BaseTestCase):
-    @pytest.mark.admin
+    @pytest.mark.active
     def test_signin_admin(self):
         invalid_admin_info = {
             "username": "test_admin_usname",
