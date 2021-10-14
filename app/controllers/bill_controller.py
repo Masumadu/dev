@@ -74,7 +74,6 @@ class BillController:
                             minutes_worked = end_time[index] - start_time[index]
                         time_worked = round(hours_worked + (minutes_worked / 60),
                                             2)
-                        print(hours_worked)
                 total_rate = time_worked * each_bill.billable_rate
                 total_bill_cost += total_rate
                 company_bills[each_bill.company].append({

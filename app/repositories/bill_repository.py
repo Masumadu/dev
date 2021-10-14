@@ -21,9 +21,12 @@ class BillRepository(SQLBaseRepository):
         try:
             cache_bills = self.redis_service.get("all_bills")
             if cache_bills:
-                for index in range(len(cache_bills)):
-                    bill_object = bill_schema.loads(json.dumps(cache_bills[index]))
+                for index, bill in enumerate(cache_bills):
+                    bill_object = bill_schema.loads(json.dumps(bill))
                     cache_bills[index] = self.model(**dict(bill_object))
+                # for index in range(len(cache_bills)):
+                #     bill_object = bill_schema.loads(json.dumps(cache_bills[index]))
+                #     cache_bills[index] = self.model(**dict(bill_object))
                 return cache_bills
             return super().index()
         except HTTPException:

@@ -35,6 +35,7 @@ class TestAuthService(BaseTestCase):
         with self.assertRaises(AppException.Unauthorized) as context:
             self.auth.check_access_role(access_payload, [self.lawyer_model.role])
         self.assertTrue(context.exception)
+        self.assert401(context.exception)
 
 
 if __name__ == "__main__":

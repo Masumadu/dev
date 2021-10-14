@@ -28,12 +28,12 @@ class AuthService:
         payload = {
             'id': id,
             'role': role,
-            'exp': datetime.utcnow() + timedelta(seconds=20),
+            'exp': datetime.utcnow() + timedelta(seconds=30),
         }
         access_token = jwt.encode(payload, Config.SECRET_KEY,
                                   algorithm="HS256",
                                   headers={"access": True})
-        payload["exp"] = datetime.utcnow() + timedelta(minutes=1)
+        payload["exp"] = datetime.utcnow() + timedelta(seconds=45)
         refresh_token = jwt.encode(payload, Config.SECRET_KEY,
                                    algorithm="HS256",
                                    headers={"refresh": True})
@@ -56,7 +56,8 @@ class AuthService:
             return self.refresh_token(refresh=True)
         except InvalidTokenError as e:
             raise AppException.OperationError(context=e.args[0])
-        return decode_token
+        else:
+            return decode_token
 
     def refresh_token(self, refresh=False):
         cookies = {"refresh_token": request.cookies.get("refresh_token")}

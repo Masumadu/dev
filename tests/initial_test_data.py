@@ -33,4 +33,3 @@ def model_data():
     lawyer = LawyerModel(**lawyer_data)
     bill = BillModel(**bill_data)
     return admin, lawyer, bill
-

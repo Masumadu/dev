@@ -4,6 +4,8 @@ from app.models import AdminModel
 from app import db
 import pytest
 from flask import url_for
+import time
+from app.core.exceptions import AppException
 
 NEW_ADMIN = {
     "name": "new_admin",
@@ -125,7 +127,7 @@ class TestAdminViews(BaseTestCase):
         self.assertEqual(delete_admin_response.status_code, 204)
         self.assertEqual(AdminModel.query.count(), 1)
 
-    @pytest.mark.admin
+    @pytest.mark.active
     def test_refresh_token(self):
         sign_in = self.test_signin_admin()
         self.client.set_cookie("localhost", "refresh_token", "")
@@ -144,6 +146,15 @@ class TestAdminViews(BaseTestCase):
         self.assertEqual(
             self.shared_responses.signin_valid_credentials().keys(),
             refresh_token_response.json.keys())
+        time.sleep(5)
+        # expired_refresh_token = self.client.get(
+        #     url_for("admin.refresh_access_token"))
+        # print(expired_refresh_token.json)
+        # self.assert500(expired_refresh_token)
+        with self.assertRaises(AppException.OperationError) as context:
+            self.client.get(url_for("admin.refresh_access_token"))
+        self.assertTrue(context.exception)
+        self.assert401(context.exception)
 
 
 if __name__ == "__main__":
